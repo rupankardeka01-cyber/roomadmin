@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin · Room Expense Tracker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #f0f3f8;
+      padding: 2rem;
+    }
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .admin-header h1 {
+      font-size: 1.8rem;
+      color: #192841;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 1.2rem;
+      padding: 1.2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border: 1px solid #e2e9f2;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #0f263f;
+      margin-top: 0.3rem;
+    }
+    .stat-value small {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #5f7d9e;
+    }
+    .expense-table {
+      background: white;
+      border-radius: 1.5rem;
+      overflow-x: auto;
+      border: 1px solid #e2e9f2;
+      margin-bottom: 2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #edf2f7;
+    }
+    th {
+      background: #f8fafd;
+      font-weight: 600;
+      color: #25415d;
+    }
+    td {
+      color: #1e3349;
+    }
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0.3rem;
+      border-radius: 8px;
+      transition: 0.1s;
+    }
+    .btn-edit { color: #2b6a9f; }
+    .btn-edit:hover { background: #e6f0fa; }
+    .btn-delete { color: #c2410c; }
+    .btn-delete:hover { background: #fee2e2; }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+    }
+    .modal-content h3 {
+      margin-bottom: 1rem;
+    }
+    .modal-content input, .modal-content select {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0 1rem;
+      border: 1px solid #d1d9e6;
+      border-radius: 50px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+    .btn-primary, .btn-secondary {
+      padding: 0.6rem 1.2rem;
+      border-radius: 60px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #1e3a5f;
+      color: white;
+    }
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #1e3349;
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #8a99b0;
+      margin-top: 2rem;
+    }
+    @media (max-width: 768px) {
+      body { padding: 1rem; }
+      .stat-value { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="admin-container">
+  <div class="admin-header">
+    <h1><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
+    <a href="index.html" style="text-decoration: none; background: #e2e8f0; padding: 0.5rem 1rem; border-radius: 40px; color: #1e3a5f;">← Back to Tracker</a>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-label">Total Spent</div><div class="stat-value" id="totalSpent">₹0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Expenses</div><div class="stat-value" id="totalCount">0</div></div>
+    <div class="stat-card"><div class="stat-label">Most Active Payer</div><div class="stat-value" id="topPayer">—</div></div>
+    <div class="stat-card"><div class="stat-label">Top Category</div><div class="stat-value" id="topCategory">—</div></div>
+  </div>
+
+  <!-- Expense Table -->
+  <div class="expense-table">
+    <table id="expenseTable">
+      <thead>
+        <tr><th>Date</th><th>Description</th><th>Amount (₹)</th><th>Payer</th><th>Receipt</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="expenseTableBody">
+        <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="footer-note">⚠️ Admin actions are permanent. Edit or delete expenses carefully.</div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h3>Edit Expense</h3>
+    <input type="hidden" id="editId">
+    <label>Date</label>
+    <input type="date" id="editDate">
+    <label>Description</label>
+    <input type="text" id="editDesc">
+    <label>Amount (₹)</label>
+    <input type="number" step="0.01" id="editAmount">
+    <label>Payer</label>
+    <select id="editPayer">
+      <option value="R">Rupankar</option>
+      <option value="J">Jyotish</option>
+      <option value="K">Kishor</option>
+      <option value="G">Gogon</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="closeModalBtn">Cancel</button>
+      <button class="btn-primary" id="saveEditBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // Import Firebase modules
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js';
+  import { getDatabase, ref, onValue, update, remove } from 'https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js';
+
+  // Your Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAap2GFEa6778X2v6tRj8ec-eSsR8tXYDk",
+    authDomain: "project-12129cb4-c223-4008-92b.firebaseapp.com",
+    databaseURL: "https://project-12129cb4-c223-4008-92b-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "project-12129cb4-c223-4008-92b",
+    storageBucket: "project-12129cb4-c223-4008-92b.firebasestorage.app",
+    messagingSenderId: "44587974750",
+    appId: "1:44587974750:web:008b2184de87e58b3834cf",
+    measurementId: "G-XNMTKQ6G8T"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const expensesRef = ref(db, 'expenses');
+
+  let expenses = [];
+
+  // Helper: format date short
+  function formatDateShort(dateStr) {
+    const d = new Date(dateStr + 'T12:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  // Render table and stats
+  function renderTable() {
+    const tbody = document.getElementById('expenseTableBody');
+    if (expenses.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No expenses found</td></tr>';
+      return;
+    }
+    // sort by date desc
+    const sorted = [...expenses].sort((a,b) => new Date(b.date) - new Date(a.date));
+    tbody.innerHTML = sorted.map(exp => `
+      <tr>
+        <td>${formatDateShort(exp.date)} (${exp.date})</td>
+        <td>${exp.description}</td>
+        <td>₹${exp.amount.toFixed(2)}</td>
+        <td>${exp.paidBy}</td>
+        <td>${exp.receipt ? '📎 ' + exp.receipt : '—'}</td>
+        <td class="actions">
+          <button class="btn-icon btn-edit" data-id="${exp.id}"><i class="fas fa-edit"></i></button>
+          <button class="btn-icon btn-delete" data-id="${exp.id}"><i class="fas fa-trash-alt"></i></button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Attach event listeners for edit/delete buttons
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = btn.getAttribute('data-id');
+        openEditModal(id);
+      });
+    });
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = btn.getAttribute('data-id');
+        if (confirm('Are you sure you want to delete this expense? This action cannot be undone.')) {
+          await remove(ref(db, `expenses/${id}`));
+        }
+      });
+    });
+  }
+
+  // Update stats cards
+  function updateStats() {
+    const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const totalCount = expenses.length;
+
+    // Most active payer
+    const payerCount = {};
+    const categoryCount = {};
+    expenses.forEach(e => {
+      payerCount[e.paidBy] = (payerCount[e.paidBy] || 0) + 1;
+      categoryCount[e.description] = (categoryCount[e.description] || 0) + 1;
+    });
+    let topPayer = '—';
+    let maxPayer = 0;
+    for (const [payer, count] of Object.entries(payerCount)) {
+      if (count > maxPayer) {
+        maxPayer = count;
+        topPayer = payer;
+      }
+    }
+    let topCategory = '—';
+    let maxCat = 0;
+    for (const [cat, count] of Object.entries(categoryCount)) {
+      if (count > maxCat) {
+        maxCat = count;
+        topCategory = cat;
+      }
+    }
+
+    document.getElementById('totalSpent').innerHTML = `₹${totalSpent.toFixed(2)}`;
+    document.getElementById('totalCount').innerText = totalCount;
+    document.getElementById('topPayer').innerHTML = topPayer !== '—' ? `${topPayer} (${maxPayer} expenses)` : '—';
+    document.getElementById('topCategory').innerHTML = topCategory !== '—' ? `${topCategory} (${maxCat})` : '—';
+  }
+
+  // Edit modal logic
+  const modal = document.getElementById('editModal');
+  const editIdInput = document.getElementById('editId');
+  const editDate = document.getElementById('editDate');
+  const editDesc = document.getElementById('editDesc');
+  const editAmount = document.getElementById('editAmount');
+  const editPayer = document.getElementById('editPayer');
+
+  function openEditModal(id) {
+    const expense = expenses.find(e => e.id === id);
+    if (!expense) return;
+    editIdInput.value = id;
+    editDate.value = expense.date;
+    editDesc.value = expense.description;
+    editAmount.value = expense.amount;
+    editPayer.value = expense.paidBy;
+    modal.style.display = 'flex';
+  }
+
+  async function saveEdit() {
+    const id = editIdInput.value;
+    const updated = {
+      date: editDate.value,
+      description: editDesc.value,
+      amount: parseFloat(editAmount.value),
+      paidBy: editPayer.value,
+      receipt: expenses.find(e => e.id === id)?.receipt || '' // keep receipt name
+    };
+    if (isNaN(updated.amount) || updated.amount <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+    if (!updated.date) {
+      alert('Please select a date');
+      return;
+    }
+    await update(ref(db, `expenses/${id}`), updated);
+    modal.style.display = 'none';
+  }
+
+  // Close modal
+  document.getElementById('closeModalBtn').addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+  document.getElementById('saveEditBtn').addEventListener('click', saveEdit);
+
+  // Firebase realtime listener
+  onValue(expensesRef, (snapshot) => {
+    const data = snapshot.val();
+    expenses = [];
+    if (data) {
+      Object.keys(data).forEach(key => {
+        expenses.push({ id: key, ...data[key] });
+      });
+    }
+    renderTable();
+    updateStats();
+  }, (error) => {
+    console.error('Firebase error:', error);
+    document.getElementById('expenseTableBody').innerHTML = '<tr><td colspan="6">Error loading data. Check console.</td></tr>';
+  });
+</script>
+</body>
+</html>
